@@ -1,33 +1,37 @@
+# app.py
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from bazi import analyze_bazi  # あなたのAPI処理関数（例）
+from bazi import BaZi
 
 app = Flask(__name__)
 CORS(app)
 
-@app.route("/ping")
+@app.route("/ping", methods=["GET"])
 def ping():
     return jsonify({"message": "pong", "status": "ok"})
 
-@app.route("/shichu")
+@app.route("/shichu", methods=["POST"])
 def shichu():
-    # 例: クエリパラメータから情報取得
-    name = request.args.get("name", "名無し")
-    year = int(request.args.get("year", 2000))
-    month = int(request.args.get("month", 1))
-    day = int(request.args.get("day", 1))
-    hour = int(request.args.get("hour", 12))
-    city = request.args.get("city", "Tokyo")
+    try:
+        data = request.json
+        year = int(data.get("year"))
+        month = int(data.get("month"))
+        day = int(data.get("day"))
+        time = int(data.get("time"))
 
-    # 四柱推命ロジックの呼び出し
-    result = analyze_bazi(year, month, day, hour, city)
+        bazi = BaZi(year, month, day, time)
+        result = bazi.fourpillars()
 
-    return jsonify({
-        "name": name,
-        "bazi": result
-    })
+        return jsonify({
+            "status": "ok",
+            "data": result
+        })
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 400
 
 if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=10000)
