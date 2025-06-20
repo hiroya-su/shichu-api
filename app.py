@@ -1,33 +1,33 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from bazi import Bazi
+from bazi import analyze_bazi  # あなたのAPI処理関数（例）
 
 app = Flask(__name__)
 CORS(app)
 
-@app.route('/sichu', methods=['POST'])
-def sichu():
-    data = request.get_json()
-    name = data.get('name')
-    birth = data.get('birthdate')  # 'YYYY-MM-DD'
-    time = data.get('birthtime')   # 'HH:MM'
-    gender = data.get('gender')
+@app.route("/ping")
+def ping():
+    return jsonify({"message": "pong", "status": "ok"})
 
-    year, month, day = birth.split('-')
-    hour = time.split(':')[0]
+@app.route("/shichu")
+def shichu():
+    # 例: クエリパラメータから情報取得
+    name = request.args.get("name", "名無し")
+    year = int(request.args.get("year", 2000))
+    month = int(request.args.get("month", 1))
+    day = int(request.args.get("day", 1))
+    hour = int(request.args.get("hour", 12))
+    city = request.args.get("city", "Tokyo")
 
-    b = Bazi(int(year), int(month), int(day), int(hour))
-    pillars = [{
-        "干": p.stem,
-        "支": p.branch,
-        "通変星": p.get_tongbianxing(),
-        "蔵干": p.get_zanggan(),
-        "五行": p.get_wuxing(),
-    } for p in b.pillars]
+    # 四柱推命ロジックの呼び出し
+    result = analyze_bazi(year, month, day, hour, city)
 
     return jsonify({
         "name": name,
-        "gender": gender,
-        "命式": pillars,
-        "comment": ""
+        "bazi": result
     })
+
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
