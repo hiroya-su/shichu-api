@@ -1,0 +1,6 @@
+flask
+flask-cors
+git+https://github.com/hiroya-su/bazi.git
+lunar_python
+colorama
+bidict
